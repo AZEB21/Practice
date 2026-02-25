@@ -1,3 +1,100 @@
+# # Simple ATM System (Beginner Friendly)
+
+# # Store users in a dictionary
+# users = {
+#     "1001": {"pin": "1234", "balance": 1000, "locked": False, "attempts": 0, "history": []},
+#     "1002": {"pin": "5678", "balance": 2000, "locked": False, "attempts": 0, "history": []}
+# }
+
+
+# def show_menu():
+#     print("\n===== ATM FEATURES =====")
+#     print("1. Balance Inquiry")
+#     print("2. Cash Withdrawal")
+#     print("3. Cash Deposit")
+#     print("4. Fund Transfer")
+#     print("5. Transaction History")
+#     print("6. Change PIN")
+#     print("7. Exit Safely")
+
+# # Login system with 3 PIN attempts
+# account_number = input("Enter your account number: ")
+
+# if account_number not in users:
+#     print("Account not found!")
+# else:
+#     user = users[account_number]
+
+#     if user["locked"]:
+#         print("Your account is locked!")
+#     else:
+#         while user["attempts"] < 3:
+#             pin = input("Enter your PIN: ")
+
+#             if pin == user["pin"]:
+#                 print("Login successful!")
+#                 break
+#             else:
+#                 user["attempts"] += 1
+#                 print("Wrong PIN!")
+
+#         if user["attempts"] == 3:
+#             user["locked"] = True
+#             print("Account locked due to 3 wrong attempts!")
+
+#         else:
+#             while True:
+#                 show_menu()
+#                 choice = input("Choose an option: ")
+
+#                 if choice == "1":
+#                     print("Your balance is:", user["balance"])
+
+#                 elif choice == "2":
+#                     amount = float(input("Enter amount to withdraw: "))
+#                     if amount <= user["balance"]:
+#                         user["balance"] -= amount
+#                         user["history"].append(f"Withdrew {amount}")
+#                         print("Withdrawal successful!")
+#                     else:
+#                         print("Insufficient balance!")
+
+#                 elif choice == "3":
+#                     amount = float(input("Enter amount to deposit: "))
+#                     user["balance"] += amount
+#                     user["history"].append(f"Deposited {amount}")
+#                     print("Deposit successful!")
+
+#                 elif choice == "4":
+#                     target = input("Enter target account number: ")
+#                     amount = float(input("Enter amount to transfer: "))
+
+#                     if target in users and amount <= user["balance"]:
+#                         user["balance"] -= amount
+#                         users[target]["balance"] += amount
+#                         user["history"].append(f"Transferred {amount} to {target}")
+#                         print("Transfer successful!")
+#                     else:
+#                         print("Transfer failed!")
+
+#                 elif choice == "5":
+#                     print("Transaction History:")
+#                     for item in user["history"]:
+#                         print("-", item)
+
+#                 elif choice == "6":
+#                     new_pin = input("Enter new PIN: ")
+#                     user["pin"] = new_pin
+#                     print("PIN changed successfully!")
+
+#                 elif choice == "7":
+#                     print("Thank you for using the ATM!")
+#                     break
+
+#                 else:
+#                     print("Invalid option!")
+
+# ===== ATM SYSTEM (Beginner Friendly) =====
 
 users = [
 

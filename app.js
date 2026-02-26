@@ -4,6 +4,7 @@ import express from 'express'
 import subscriptionrouter from './routes/subscription.routes.js';
 import authrouter from './routes/auth.routes.js';
 import userrouter from './routes/user.routes.js';
+import connectiontodatabase from './database/mongodb.js';
 const app =express();
 app.use('/api/v1/auth',authrouter);
 app.use('/api/v1/users',userrouter);
@@ -12,8 +13,10 @@ app.use('/api/v1/subscriptions',subscriptionrouter);
 app.get('/',(req,res)=>{
 res.send("Welcom to the subscription API!")
 });
-app.listen(PORT,()=>{
-    console.log(`the port is running at http://localhost:${PORT}`)
+app.listen(PORT,async()=>{
+    console.log(`the port is running at http://localhost:${PORT}`);
+    await connectiontodatabase();
+
 });
 
 export default app;

@@ -1,0 +1,35 @@
+services:
+  # ── PHP Web App ─────────────────────────────────────────────────────────────
+  - type: web
+    name: student-management-system
+    runtime: docker
+    dockerfilePath: ./student-management-system/Dockerfile
+    dockerContext: ./student-management-system
+    plan: free
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: student-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: student-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: student-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: student-db
+          property: user
+      - key: DB_PASS
+        fromDatabase:
+          name: student-db
+          property: password
+
+  # ── MySQL Database ───────────────────────────────────────────────────────────
+databases:
+  - name: student-db
+    databaseName: student_db
+    plan: free

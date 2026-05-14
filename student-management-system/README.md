@@ -35,16 +35,19 @@ Manage students — add, view, edit, delete, and search — all from a simple br
 
 ```
 student-management-system/
-├── config.php      # DB credentials & app constants
-├── db.php          # PDO connection + reusable query helpers
-├── index.php       # Student list + search
-├── add.php         # Add student form
-├── edit.php        # Edit student form
-├── delete.php      # Delete handler (redirect)
-├── view.php        # Single student detail page
-├── style.css       # All styles
-├── database.sql    # DB schema + sample data
-└── README.md       # This file
+├── config.php              # DB credentials & app constants
+├── db.php                  # PDO connection + reusable query helpers
+├── index.php               # Student list + search
+├── add.php                 # Add student form
+├── edit.php                # Edit student form
+├── delete.php              # Delete handler (redirect)
+├── view.php                # Single student detail page
+├── style.css               # All styles
+├── database.sql            # DB schema + sample data
+├── Dockerfile              # PHP 8.2 + Apache image
+├── docker-entrypoint.sh    # Wires $PORT for Render at runtime
+├── render.yaml             # Render blueprint (web + MySQL)
+└── README.md               # This file
 ```
 
 ---
@@ -99,21 +102,41 @@ Then visit: `http://localhost/student-management-system/`
 
 ---
 
-## Deployment (Railway / Render)
+## Deployment (Render — one-click)
 
-Environment variables to set on the hosting platform:
+The repo includes a `render.yaml` blueprint that provisions **both** the PHP web service and a MySQL database automatically.
 
-| Variable  | Example value         |
-|-----------|-----------------------|
-| `DB_HOST` | `mysql.railway.app`   |
-| `DB_PORT` | `3306`                |
-| `DB_NAME` | `student_db`          |
-| `DB_USER` | `root`                |
-| `DB_PASS` | `your_password`       |
+### Steps
 
-The app reads these automatically via `getenv()` in `config.php`.
+1. Go to [dashboard.render.com](https://dashboard.render.com) → **New** → **Blueprint**
+2. Connect your GitHub account and select the `AZEB21/Practice` repo
+3. Render detects `render.yaml` and shows a preview of what it will create:
+   - `student-management-system` — PHP/Apache web service (Docker)
+   - `student-db` — MySQL database (free tier)
+4. Click **Apply** — Render builds the Docker image and wires the DB env vars automatically
+5. Once deployed, open the web service URL and run the database schema:
+   - Go to the **student-db** service → **Shell** tab
+   - Paste the contents of `database.sql` and run it
 
-A `Dockerfile` and `railway.json` are included for one-click Railway deployment.
+### Environment Variables (auto-wired by render.yaml)
+
+| Variable  | Source                        |
+|-----------|-------------------------------|
+| `DB_HOST` | Render MySQL host             |
+| `DB_PORT` | Render MySQL port             |
+| `DB_NAME` | `student_db`                  |
+| `DB_USER` | Render MySQL user             |
+| `DB_PASS` | Render MySQL password         |
+
+All values are injected at runtime — no manual editing of `config.php` needed.
+
+### Files included for Render
+
+| File | Purpose |
+|---|---|
+| `Dockerfile` | PHP 8.2 + Apache image |
+| `docker-entrypoint.sh` | Wires Render's dynamic `$PORT` into Apache at startup |
+| `render.yaml` | Blueprint — provisions web service + MySQL in one click |
 
 ---
 

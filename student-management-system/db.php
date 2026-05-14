@@ -31,9 +31,43 @@ function getDB(): PDO {
                     <pre>' . htmlspecialchars($e->getMessage()) . '</pre>
                  </div>');
         }
+
+        // Auto-create the students table if it doesn't exist yet
+        migrateDB($pdo);
     }
 
     return $pdo;
+}
+
+/**
+ * Create the students table if it doesn't already exist.
+ * Runs once on first connection — safe to call on every request.
+ */
+function migrateDB(PDO $pdo): void {
+    if (DB_DRIVER === 'pgsql') {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS students (
+                id         SERIAL       PRIMARY KEY,
+                name       VARCHAR(100) NOT NULL,
+                email      VARCHAR(100) NOT NULL UNIQUE,
+                department VARCHAR(100) NOT NULL,
+                age        INT          NOT NULL,
+                created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        ");
+    } else {
+        $pdo->exec("
+            CREATE TABLE IF NOT EXISTS students (
+                id         INT          NOT NULL AUTO_INCREMENT,
+                name       VARCHAR(100) NOT NULL,
+                email      VARCHAR(100) NOT NULL UNIQUE,
+                department VARCHAR(100) NOT NULL,
+                age        INT          NOT NULL,
+                created_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        ");
+    }
 }
 
 // ─── Reusable query helpers ───────────────────────────────────────────────────

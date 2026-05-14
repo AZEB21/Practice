@@ -1,5 +1,6 @@
 <?php
 // db.php - Central database connection using PDO
+// Supports both PostgreSQL (Render) and MySQL (local XAMPP).
 
 require_once __DIR__ . '/config.php';
 
@@ -7,8 +8,13 @@ function getDB(): PDO {
     static $pdo = null;
 
     if ($pdo === null) {
-        $dsn = 'mysql:host=' . DB_HOST . ';port=' . DB_PORT
-             . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+        // Build DSN based on driver
+        if (DB_DRIVER === 'pgsql') {
+            $dsn = 'pgsql:host=' . DB_HOST . ';port=' . DB_PORT . ';dbname=' . DB_NAME;
+        } else {
+            $dsn = 'mysql:host=' . DB_HOST . ';port=' . DB_PORT
+                 . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+        }
 
         $options = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
@@ -19,7 +25,6 @@ function getDB(): PDO {
         try {
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
-            // Show a friendly error; never expose credentials
             die('<div style="font-family:sans-serif;color:#c0392b;padding:2rem;">
                     <h2>Database Connection Failed</h2>
                     <p>Could not connect to the database. Please check your configuration.</p>
@@ -39,10 +44,12 @@ function getDB(): PDO {
 function getAllStudents(string $search = ''): array {
     $db = getDB();
     if ($search !== '') {
+        // ILIKE is Postgres; LIKE works for both but is case-sensitive in Postgres.
+        // Use LOWER() for portable case-insensitive search.
         $stmt = $db->prepare(
             'SELECT * FROM students
-              WHERE name  LIKE :search
-                 OR email LIKE :search
+              WHERE LOWER(name)  LIKE LOWER(:search)
+                 OR LOWER(email) LIKE LOWER(:search)
               ORDER BY created_at DESC'
         );
         $stmt->execute([':search' => '%' . $search . '%']);
@@ -65,17 +72,35 @@ function getStudentById(int $id): array|false {
  * Insert a new student. Returns the new row's ID.
  */
 function addStudent(string $name, string $email, string $department, int $age): int {
-    $stmt = getDB()->prepare(
-        'INSERT INTO students (name, email, department, age)
-         VALUES (:name, :email, :department, :age)'
-    );
-    $stmt->execute([
-        ':name'       => $name,
-        ':email'      => $email,
-        ':department' => $department,
-        ':age'        => $age,
-    ]);
-    return (int) getDB()->lastInsertId();
+    $db = getDB();
+
+    if (DB_DRIVER === 'pgsql') {
+        // PostgreSQL uses RETURNING to get the inserted ID
+        $stmt = $db->prepare(
+            'INSERT INTO students (name, email, department, age)
+             VALUES (:name, :email, :department, :age)
+             RETURNING id'
+        );
+        $stmt->execute([
+            ':name'       => $name,
+            ':email'      => $email,
+            ':department' => $department,
+            ':age'        => $age,
+        ]);
+        return (int) $stmt->fetchColumn();
+    } else {
+        $stmt = $db->prepare(
+            'INSERT INTO students (name, email, department, age)
+             VALUES (:name, :email, :department, :age)'
+        );
+        $stmt->execute([
+            ':name'       => $name,
+            ':email'      => $email,
+            ':department' => $department,
+            ':age'        => $age,
+        ]);
+        return (int) $db->lastInsertId();
+    }
 }
 
 /**
@@ -111,7 +136,7 @@ function deleteStudent(int $id): int {
  */
 function emailExists(string $email, int $excludeId = 0): bool {
     $stmt = getDB()->prepare(
-        'SELECT COUNT(*) FROM students WHERE email = :email AND id != :id'
+        'SELECT COUNT(*) FROM students WHERE LOWER(email) = LOWER(:email) AND id != :id'
     );
     $stmt->execute([':email' => $email, ':id' => $excludeId]);
     return (int) $stmt->fetchColumn() > 0;
